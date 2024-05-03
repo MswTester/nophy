@@ -1,0 +1,2 @@
+# nophy
+emulator bypasser
