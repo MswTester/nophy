@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nophy Hax</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body{
+            width: 100vw;
+            height: 100vh;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        body{
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        
+        input:focus{outline: none;}
+        
+        .hide{display: none !important;}
+
+        #loading{
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+            color: #fff;
+            font-size: 20px;
+            user-select: none;
+        }
+        
+        #log, #debugger, #main{
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: start;
+            align-items: center;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+
+        #log #textbox{
+            width: 100%;
+            height: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: start;
+            align-items: center;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        #log #textbox div{
+            width: 100%;
+        }
+
+        #log #inp{
+            width: 100%;
+            padding: 10px;
+            background-color: transparent;
+            border: 1px solid #ccc;
+        }
+
+        .box{
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #main button, #debugger button{
+            padding: 10px;
+            background-color: #000;
+            color: #fff;
+            border: 0;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #main button:hover, #debugger button:hover{background-color: #111;}
+        #main button:active, #debugger button:active{background-color: #222;}
+        #main button:disabled, #debugger button:disabled{opacity: .5; cursor: not-allowed;}
+        #main button:focus, #main input:focus, #main select:focus,
+        #debugger button:focus, #debugger input:focus, #debugger select:focus{outline: none;}
+
+        #main input, #main select,
+        #debugger input, #debugger select{
+            padding: 10px;
+            background-color: #ccc;
+            border: 1px solid #aaa;
+            border-radius: 5px;
+        }
+
+        #main .opt{
+            width: 100%;
+            padding: 5px;
+            display: flex;
+            justify-content: start;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #debugger{padding: 10px; gap: 10px;}
+        #debugger > div{
+            width: 100%;
+            height: 50%;
+            display: flex;
+            justify-content: start;
+            align-items: start;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        #debugger > div:nth-child(1){flex-direction: row;}
+        #debugger > div:nth-child(2){flex-direction: column;}
+
+        #d-addr, #d-scanner{
+            width: 100%;
+            height: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: start;
+            align-items: start;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        #d-addr-header{
+            font-weight: bold;
+            border-bottom: 1px #ccc solid;
+            padding-bottom: 10px;
+        }
+        #d-addrs{
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: start;
+            align-items: center;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        #d-addr-header, #d-addrs > div{
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        #d-addr-header div, #d-addrs > div > div{
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #d-scanner .opt{
+            width: 100%;
+            display: flex;
+            justify-content: start;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading"></div>
+    <div id="main" class="hide">
+        <div class="opt">
+            <button id="exit">Terminate the Process</button>
+        </div>
+        <div class="opt">
+            <div>ADB Address</div>
+            <input type="text" id="adb-address">
+            <div>ADB Port</div>
+            <input type="text" id="adb-port">
+        </div>
+        <div class="opt">
+            <div>ADB Device Connected</div>
+            <div style="color: red;" id="adb-connected">FALSE</div>
+            <button disabled id="adb-connected-btn">Connect</button>
+        </div>
+        <div class="opt">
+            <div>Frida Device Connected</div>
+            <div style="color: red;" id="frida-connected">FALSE</div>
+            <button disabled id="frida-connected-btn">Connect</button>
+        </div>
+        <div class="opt">
+            <div>Frida Server Exist</div>
+            <div style="color: red;" id="server-exist">FALSE</div>
+            <button disabled id="server-exist-btn">Download Server</button>
+        </div>
+        <div class="opt">
+            <div>Frida Server Permission</div>
+            <div style="color: red;" id="server-perm">FALSE</div>
+            <button disabled id="server-perm-btn">Check Permission</button>
+        </div>
+        <div class="opt">
+            <div>Frida Server On</div>
+            <div style="color: red;" id="server-on">FALSE</div>
+            <button disabled id="server-on-btn">Start Server</button>
+        </div>
+        <div class="opt">
+            <div>Proccess On</div>
+            <div style="color: red;" id="process-on">FALSE</div>
+            <button disabled id="process-on-btn">Start Process</button>
+        </div>
+        <div class="opt">
+            <div>Cookie</div>
+            <div id="cookie"></div>
+        </div>
+    </div>
+    <div id="debugger" class="hide">
+        <div class="box">
+            <div id="d-addr" class="box">
+                <div id="d-addr-header">
+                    <div>Address</div>
+                    <div>Value</div>
+                </div>
+                <div id="d-addrs"></div>
+            </div>
+            <div id="d-scanner" class="box">
+                <div class="opt">
+                    <button id="new-scan">First Scan</button>
+                    <button id="next-scan" disabled>Next Scan</button>
+                </div>
+                <div class="opt">
+                    <input type="text" name="" id="scan-value" placeholder="value">
+                </div>
+                <div class="opt">
+                    <select name="" id="value-type">
+                        <option value="byte">Byte</option>
+                        <option value="int">Int</option>
+                        <option value="float">Float</option>
+                        <option value="double">Double</option>
+                        <option value="string">String</option>
+                    </select>
+                </div>
+                <div class="opt">
+                    <select name="" id="scan-range">
+                        <option value="all">All</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="box">
+
+        </div>
+    </div>
+    <div id="log" class="hide">
+        <div id="textbox"></div>
+        <input type="text" name="" id="inp">
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const states = {
+            'adb-connected': false,
+            'frida-connected': false,
+            'server-exist': false,
+            'server-perm': false,
+            'server-on': false,
+            'process-on': false
+        }
+        const address_needed = ['adb-connected', 'frida-connected'];
+
+        let addrs = [];
+        let modules = [];
+        let first = true;
+
+        $('loading').textContent = 'Loading...';
+        let connected = false;
+        let socket = io();
+
+        $('exit').addEventListener('click', () => {socket.emit('exit')});
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            connected = true;
+            $('loading').classList.add('hide');
+            $('main').classList.remove('hide');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+            connected = false;
+            $('loading').textContent = 'Disconnected from server';
+            $('loading').classList.remove('hide');
+            $('main').classList.add('hide');
+            $('debugger').classList.add('hide');
+            $('log').classList.add('hide');
+        });
+
+        const toggleState = (type, value) => {
+            $(type).textContent = value ? 'TRUE' : 'FALSE';
+            $(type).style.color = value ? 'green' : 'red';
+            $(`${type}-btn`).disabled = value;
+            states[type] = value;
+        }
+
+        socket.on('init', (data) => {
+            $('adb-address').value = data.adb_address;
+            $('adb-port').value = data.adb_port;
+            Object.keys(states).forEach(state => {
+                toggleState(state, data[state.replace('-', '_')]);
+            });
+            if(!Object.values(states).includes(false)){
+                socket.emit('api', {type: 'init'})
+            }
+            $('cookie').textContent = data.cookie;
+        });
+
+        socket.on('gameInit', (data) => {
+            $('scan-range').innerHTML = '';
+            const all = newElem('option', 'All');
+            $('scan-range').appendChild(all);
+            all.value = 'all';
+            data.forEach(mod => {
+                const opt = newElem('option', mod.name)
+                opt.value = mod.name;
+                $('scan-range').appendChild(opt);
+            })
+            modules = data;
+        })
+
+        socket.on('statement', (data) => {
+            const tar = $(data.type)
+            if (data.type === 'cookie') {
+                tar.textContent = data.value;
+            } else {
+                toggleState(data.type, data.value);
+            }
+        })
+
+        socket.on('api', (data) => {
+            $('textbox').appendChild(newElem('div', JSON.stringify(data)));
+            if(data.type === 'new-scan') {
+                $('next-scan').disabled = false;
+                $('new-scan').disabled = false;
+                $('d-addrs').innerHTML = '';
+                addrs = [];
+                data.addrs.forEach(addr => {
+                    addrs.push(addr);
+                    const div = newElem('div');
+                    div.appendChild(newElem('div', addr.address));
+                    div.appendChild(newElem('div', addr.value));
+                    $('d-addrs').appendChild(div);
+                });
+            } else if(data.type === 'next-scan') {
+                $('next-scan').disabled = false;
+                $('new-scan').disabled = false;
+                $('d-addrs').innerHTML = '';
+                addrs = [];
+                data.addrs.forEach(addr => {
+                    addrs.push(addr);
+                    const div = newElem('div');
+                    div.appendChild(newElem('div', addr.address));
+                    div.appendChild(newElem('div', addr.value));
+                    $('d-addrs').appendChild(div);
+                });
+            }
+        });
+
+        socket.on('log', (message) => {
+            $('textbox').appendChild(newElem('div', message));
+        });
+
+        $('new-scan').addEventListener('click', () => {
+            if(first){
+                first = false;
+                $('new-scan').textContent = 'New Scan';
+                const value = $('scan-value').value;
+                const valueType = $('value-type').value;
+                const byteValue = convertValueToByte(value, valueType);
+                const base = $('scan-range').value === 'all' ? '0x000000000000' : modules.find(mod => mod.name === $('scan-range').value).base;
+                const size = $('scan-range').value === 'all' ? 0x7fffffffffff : modules.find(mod => mod.name === $('scan-range').value).size;
+                socket.emit('api', {type: 'new-scan', data: {base, size, value: byteValue}});
+                $('new-scan').disabled = true;
+                $('next-scan').disabled = true;
+            } else {
+                addrs = [];
+                $('d-addrs').innerHTML = '';
+                first = true;
+                $('new-scan').textContent = 'First Scan';
+                $('next-scan').disabled = true;
+            }
+        });
+
+        $('next-scan').addEventListener('click', () => {
+            const value = $('scan-value').value;
+            const valueType = $('value-type').value;
+            const byteValue = convertValueToByte(value, valueType);
+            const size = byteValue.split(' ').length;
+            socket.emit('api', {type: 'next-scan', data: {addrs, size, value: byteValue}});
+            $('new-scan').disabled = true;
+            $('next-scan').disabled = true;
+        });
+
+        Object.keys(states).forEach(state => {
+            const stateBtn = `${state}-btn`
+            $(stateBtn).addEventListener('click', () => {
+                let data = address_needed.includes(state) ? {host: $('adb-address').value, port: $('adb-port').value} : {};
+                socket.emit('statement', {type: state, data})
+            });
+        });
+
+        $('inp').addEventListener('keydown', (e) => {
+            try{
+                const content = JSON.parse(e.target.value);
+                if (e.key === 'Enter') {
+                    emitApi(content.type, content.value);
+                    e.target.value = '';
+                }
+            } catch (e) {
+                return;
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if(e.altKey) e.preventDefault();
+            if (!connected) return;
+            if (e.key === '1' && e.altKey) {
+                $('main').classList.remove('hide');
+                $('debugger').classList.add('hide');
+                $('log').classList.add('hide');
+            } else if(e.key === '2' && e.altKey) {
+                $('main').classList.add('hide');
+                $('debugger').classList.remove('hide');
+                $('log').classList.add('hide');
+            } else if(e.key === '3' && e.altKey) {
+                $('main').classList.add('hide');
+                $('debugger').classList.add('hide');
+                $('log').classList.remove('hide');
+            }
+        });
+
+        function newElem(tag, text = '', className = '', id = '') {
+            let elem = document.createElement(tag);
+            elem.innerText = text;
+            elem.className = className;
+            elem.id = id;
+            return elem;
+        }
+
+        function $(id) {
+            return document.getElementById(id);
+        }
+
+        function emitApi(type, value) {
+            socket.emit('api', {type, ...value});
+        }
+
+        function convertValueToByte(value, valueType) {
+            let byteValue = "";
+
+            switch (valueType) {
+                case "byte":
+                    byteValue = value;
+                    break;
+                case "int":
+                    byteValue = intToByte(parseInt(value));
+                    break;
+                case "float":
+                    byteValue = floatToByte(parseFloat(value));
+                    break;
+                case "double":
+                    byteValue = doubleToByte(parseFloat(value));
+                    break;
+                case "string":
+                    byteValue = stringToByte(value);
+                    break;
+                default:
+                    console.error("Unsupported valueType: " + valueType);
+                    break;
+            }
+
+            return byteValue;
+        }
+
+        function intToByte(intValue) {
+            return (intValue & 0xFF).toString(16).toUpperCase().padStart(2, '0');
+        }
+
+        function floatToByte(floatValue) {
+            let buffer = new ArrayBuffer(4);
+            new DataView(buffer).setFloat32(0, floatValue, true); // little-endian
+            let uintArray = new Uint8Array(buffer);
+            return Array.from(uintArray, byte => byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+        }
+
+        function doubleToByte(doubleValue) {
+            let buffer = new ArrayBuffer(8);
+            new DataView(buffer).setFloat64(0, doubleValue, true); // little-endian
+            let uintArray = new Uint8Array(buffer);
+            return Array.from(uintArray, byte => byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+        }
+
+        function stringToByte(stringValue) {
+            return stringValue.split('').map(char => char.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0')).join(' ');
+        }
+
+        function byteToValue(byteString, valueType) {
+            let byteValues = byteString.split(' ').map(hex => parseInt(hex, 16));
+
+            switch (valueType) {
+                case "byte":
+                    return byteValues[0];
+                case "int":
+                    return byteToInt(byteValues);
+                case "float":
+                    return byteToFloat(byteValues);
+                case "double":
+                    return byteToDouble(byteValues);
+                case "string":
+                    return byteToString(byteValues);
+                default:
+                    console.error("Unsupported valueType: " + valueType);
+                    return null;
+            }
+        }
+
+        function byteToInt(byteValues) {
+            let buffer = new ArrayBuffer(4);
+            let intView = new Uint8Array(buffer);
+            intView.set(byteValues.reverse());
+            return new Int32Array(buffer)[0];
+        }
+
+        function byteToFloat(byteValues) {
+            let buffer = new ArrayBuffer(4);
+            let floatView = new Uint8Array(buffer);
+            floatView.set(byteValues.reverse());
+            return new Float32Array(buffer)[0];
+        }
+
+        function byteToDouble(byteValues) {
+            let buffer = new ArrayBuffer(8);
+            let doubleView = new Uint8Array(buffer);
+            doubleView.set(byteValues.reverse());
+            return new Float64Array(buffer)[0];
+        }
+
+        function byteToString(byteValues) {
+            return byteValues.map(byte => String.fromCharCode(byte)).join('');
+        }
+    </script>
+</body>
+</html>

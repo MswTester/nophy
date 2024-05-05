@@ -9,15 +9,21 @@
     "build": "tsc",
     "watch": "tsc -w"
   },
+  "bin": {
+    "app": "./index.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "adb-ts": "^5.0.0",
+    "express": "^4.19.2",
     "frida": "^16.2.1",
-    "fs": "^0.0.1-security"
+    "fs": "^0.0.1-security",
+    "socket.io": "^4.7.5"
   },
   "devDependencies": {
+    "@types/express": "^4.17.21",
     "@types/node": "^20.12.8",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
