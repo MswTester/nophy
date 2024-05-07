@@ -34,7 +34,7 @@ const io = new Server(server)
 let socketConnected:boolean = false;
 let adbId:string = '';
 let fridaDevice:frida.Device;
-let fridaServerExist:boolean = false;
+let fridaServerExist:string = "";
 let fridaServerPermission:boolean = false;
 let fridaServerOn:boolean = false;
 let processOn:boolean = false;
@@ -56,7 +56,7 @@ io.on('connection', (socket) => {
         adb_port,
         adb_connected: adbId ? true : false,
         frida_connected: fridaDevice ? true : false,
-        server_exist: fridaServerExist,
+        server_exist: fridaServerExist ? true : false,
         server_perm: fridaServerPermission,
         server_on: fridaServerOn,
         process_on: processOn,
@@ -213,12 +213,12 @@ const checkFridaServer = async () => {
     const file = files.find(file => filelist.includes(file.name))
     if (!file) {
         log('[*] Frida server not found')
-        fridaServerExist = false
+        fridaServerExist = ""
         initState('server-exist', fridaServerExist)
         return false
     }
     log('[*] Frida server found')
-    fridaServerExist = true
+    fridaServerExist = file.name
     initState('server-exist', fridaServerExist)
     return true
 }
@@ -226,11 +226,11 @@ const checkFridaServer = async () => {
 const checkFridaServerPermission = async () => {
     log('[*] Checking frida server permission')
     if(adbId === '') return log('[*] ADB not connected')
-    const permissions = await adb.shell(adbId, 'ls -l /data/local/tmp/frida-server')
+    const permissions = await adb.shell(adbId, `ls -l /data/local/tmp/${fridaServerExist}`)
     if (!permissions.includes('rwxrwxrwx')) {
         try{
             log(`[*] Changing permissions`)
-            const chmod = await adb.shell(adbId, `chmod 777 /data/local/tmp/frida-server`)
+            const chmod = await adb.shell(adbId, `chmod 777 /data/local/tmp/${fridaServerExist}`)
             log(`[*] Permissions changed`)
             fridaServerPermission = true
             initState('server-perm', true)
@@ -253,7 +253,7 @@ const startFridaServer = async () => {
         log('[*] ADB not connected')
         return false
     }
-    const server = adb.shell(adbId, `su -c /data/local/tmp/frida-server`)
+    const server = adb.shell(adbId, `su -c /data/local/tmp/${fridaServerExist}`)
     log(`[*] Frida server started`)
     fridaServerOn = true
     initState('server-on', true)
