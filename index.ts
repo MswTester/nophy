@@ -21,7 +21,7 @@ const eventEmitter = new EventEmitter()
 
 const filelist:string[] = ['frida', 'frida-server', 'frida-x86', 'frida-x86_64', 'frida-arm', 'frida-arm64']
 const target:string = 'com.gameparadiso.milkchoco'
-const frida_version:string = pacakge.dependencies.frida.split('^')[1] || '16.2.1'
+const frida_version:string = pacakge.dependencies.frida.split('^')[1] || '16.3.3'
 const server_port:number = 3005
 const localhost:string = '127.0.0.1'
 let adb_localhost:string = '127.0.0.1'
